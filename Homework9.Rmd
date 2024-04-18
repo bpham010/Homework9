@@ -1,0 +1,196 @@
+---
+title: "Homework9"
+author: "Brian Pham, bp26834, https://github.com/bpham010/SDS315-Homework9"
+date: "2024-04-10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, warning=FALSE, tidy=TRUE, message = FALSE, tidy.opts=list(width.cutoff=60))
+```
+
+# Problem 1: Get out the Vote
+
+```{r, echo = FALSE, results = "hide"}
+library(mosaic)
+library(tidyverse)
+library(MatchIt)
+library(readr)
+
+turnout <- read_csv("~/SDS315/Homework9/turnout.csv")
+
+prop(voted1998 ~ GOTV_call, data = turnout)
+prop.test(voted1998 ~ GOTV_call, data = turnout)
+prop.table(prop(voted1998 ~ GOTV_call, data = turnout))
+
+#bootProp1998 = do(10000)*diffprop(voted1998 ~ GOTV_call, data = resample(turnout))
+#confint(bootProp1998, level = .95)
+
+```
+
+### Part A
+In 1998, the proportion between those who received a GOTV call and voted versus those who didn't was 0.64 and 0.44 respectively. 
+
+The sample proportion of those who didn't receive a GOTV call who voted in 1998 was 0.35. 
+
+
+The difference between the proportions that voted in 1998 that received a GOTV call versus those who didn't is between 0.14 and 0.26 with 95% confidence. 
+
+\newpage
+
+
+### Part B. 
+
+```{r, echo = FALSE, results = "hide"}
+
+prop(voted1996 ~ voted1998, data = turnout)
+prop(MAJORPTY ~ voted1998, data = turnout)
+
+```
+
+There is evidence that the voted1996 variable is a confounding variable since the proportion of those who voted in 1996 and 1998 is 0.34 and 0.76, a significantly different proportion than listed above in part A. This suggests that behavior towards voted could be different in 1996, making voted1996 a confounding variable. 
+
+
+
+There is also evidence that those registered as a member of either one of the two major U.S. political parties (MAJORPTY). There is approximately a difference of 0.10 between those that aren't affiliated with a political party (0.7) and those that are (.80). There is a possibility that a member's political party could affect their chances of receiving a GOTV call and to have voted. 
+
+
+As shown below, AGE is a strong confounder for the effects of a GOTV call since it appears that there a strong disparity between the ages that vote. Those aged around 25 are very likely to not vote compared to those much older. 
+
+
+```{r, echo = FALSE}
+
+ggplot(turnout) + geom_histogram(aes(x=AGE, y=..density..)) + facet_grid(~voted1998)
+
+```
+
+# Part C
+
+```{r, echo = FALSE, results = "hide"}
+
+
+turnout_match = matchit(GOTV_call ~ AGE + MAJORPTY + voted1996, data = turnout, ratio=5)
+
+summary(turnout_match)
+
+
+```
+
+In the "matched" data set, the summary statistics show that the mean difference between the control and treatment groups of AGE, MAJORPTY, voted1996 are 0.002, -.014, and 0 respectively. 
+
+The below graph showing age also show evidence that the matched proportions are similarly matched.
+
+```{r, echo = FALSE, results = "hide"}
+
+turnout_matched = match.data(turnout_match)
+
+```
+
+
+```{r, echo = FALSE}
+
+ggplot(turnout_matched) + geom_histogram(aes(x=AGE, y=..density..)) + facet_grid(~voted1998)
+
+```
+
+
+
+```{r, echo = FALSE, results = "hide"}
+
+prop(voted1998 ~ GOTV_call, data = turnout_matched)
+prop.test(voted1998 ~ GOTV_call, data = turnout_matched)
+prop.table(prop(voted1998 ~ GOTV_call, data = turnout_matched))
+
+bootProp1998matched = do(10000)*diffprop(voted1998 ~ GOTV_call, data = resample(turnout_matched))
+
+confint(bootProp1998matched, level = .95)
+```
+
+The proportion of those receiving GOTV call who voted in 1998, is 0.65. 
+
+The sample proportion of those not receiving a GOTV call who voted in 1998 is 0.46. 
+
+
+
+In conclusion, we are 95% confident that overall the proportion of people that are likely to vote upon receiving a GOTV call is between 0.005 and 0.14, concluding that people may be more inclined to vote after reciving a GOTV call. 
+
+
+\newpage
+
+
+
+# Problem 2: Manufacturing flaws in circuits board
+
+
+
+### Part A
+
+```{r, echo = FALSE}
+
+
+library(readr)
+library(moderndive)
+solder <- read_csv("~/SDS315/Homework9/solder.csv")
+
+
+ggplot(data = solder, aes(x=Opening, y = skips)) + geom_jitter() + stat_summary(fun='mean', color='darkorange')
+
+
+
+
+```
+
+The above jitter plot demonstrates the number of skips between opening types. Each orange circle represents the mean skips for each opening.
+
+```{r, echo = FALSE}
+
+
+ggplot(data = solder, aes(x=Solder, y = skips)) + geom_jitter() + stat_summary(fun='mean', color='darkorange')
+
+
+```
+
+The jitters plot above shows the number of skips when solder type is the predictor. 
+
+### Part B
+
+```{r, echo = FALSE, results = "hide"}
+
+lm3 = lm(skips ~ Opening + Solder + Opening:Solder, data=solder)
+lm3
+
+
+```
+
+
+```{r, echo = FALSE}
+
+
+knitr::kable(get_regression_table(lm3, conf.level = 0.95, digits = 2))
+
+
+```
+
+### Part C
+
+The baseline number of skips is 0.39, where the baseline is a thick opening and a thick solder type. 
+
+The main effect of Opening: M is 2.41 where the effect of Opening: M is isolated. 
+The main effect of Opening: S is 5.13 where the effect of Opening: S is isolated.
+
+The main effect of Solder: Thin is 2.28 where the effect of Solder: Thin is isolated. 
+
+The interaction effect of Opening: M and Solder: Thin is -0.74 where the combined effects of having a Opening: M and Solder: Thin yields .74 less skips than what is expected when summing the individual isolated effects. 
+
+The interaction effect of Opening: S and Solder: Thin is 9.65 where the combined effects of having an Opening: S and Solder: thin yields 9.65 more skips than what is expected when summing the individual isolated effects. 
+
+
+### Part D
+
+If I were to recommend a combination of opening sizes and solder thickness to AT&T based on would be a large opening and a thick solder. Based on the analysis above, we are 95% confident that the interaction yields between -0.63 and 1.41 skips. 
+
+
+
