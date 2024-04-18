@@ -113,9 +113,9 @@ The proportion of those receiving GOTV call who voted in 1998, is 0.65.
 
 The sample proportion of those not receiving a GOTV call who voted in 1998 is 0.46. 
 
+We are 95% confident that overall the difference in proportion of people that are likely to vote upon receiving a GOTV call or when they don't receive a GOTV call is between 0.005 and 0.14. 
 
-
-In conclusion, we are 95% confident that overall the proportion of people that are likely to vote upon receiving a GOTV call is between 0.005 and 0.14, concluding that people may be more inclined to vote after reciving a GOTV call. 
+In conclusion, we conclude that people may be more inclined to vote after receiving a GOTV call. 
 
 
 \newpage
